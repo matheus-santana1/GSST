@@ -12,6 +12,4 @@ sqlparse==0.5.5
 tablib==3.9.0
 
 -e ./libs/django-jazzmin
-
-# pip install --upgrade --force-reinstall git+https://github.com/matheus-santana1/django-jazzmin.git@main
-git+https://github.com/matheus-santana1/django-jazzmin.git@main#egg=django-jazzmin
+#pip install --force-reinstall -e ./libs/django-jazzmin
