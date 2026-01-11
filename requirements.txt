@@ -1,0 +1,17 @@
+asgiref==3.11.0
+diff-match-patch==20241021
+Django==6.0.1
+django-import-export==4.4.0
+django-localflavor==5.0
+et_xmlfile==2.0.0
+psycopg2-binary==2.9.11
+python-decouple==3.8
+python-dotenv==1.2.1
+python-stdnum==2.2
+sqlparse==0.5.5
+tablib==3.9.0
+
+-e ./libs/django-jazzmin
+
+# pip install --upgrade --force-reinstall git+https://github.com/matheus-santana1/django-jazzmin.git@main
+git+https://github.com/matheus-santana1/django-jazzmin.git@main#egg=django-jazzmin

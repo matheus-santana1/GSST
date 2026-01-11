@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+
+{% block footer %}
+    {{ block.super }}
+    <script>
+        if (!window.jQuery && window.django && window.django.jQuery) {
+            window.jQuery = window.django.jQuery;
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        (function ($) {
+            $(document).ready(function () {
+                var mascaras = [
+                    {seletor: '#id_cpf', mascara: '000.000.000-00'},
+                    {seletor: '.field-cpf a', mascara: '000.000.000-00'},
+                    //{ seletor: '#id_telefone', mascara: '(00) 00000-0000' },
+                ];
+                mascaras.forEach(function (item) {
+                    var elementos = $(item.seletor);
+                    if (elementos.length > 0) {
+                        elementos.mask(item.mascara, {reverse: true});
+                    }
+                });
+            });
+        })(window.jQuery || window.django.jQuery);
+    </script>
+    <style>
+        .select2.select2-container {
+            width: 100% !important;
+        }
+
+        .field-cpf a, .field-nome_completo, .field-cr, .field-tempo_de_casa_visual {
+            white-space: nowrap !important;
+        }
+
+        #result_list td, #result_list th {
+            white-space: normal;
+            font-size: 13px;
+            padding: 4px;
+            align-content: center;
+        }
+
+        #result_list td:has(img), #result_list .action-checkbox, #result_list .djn-checkbox-select-all {
+            text-align: center !important;
+        }
+
+    </style>
+{% endblock %}
