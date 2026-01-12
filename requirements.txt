@@ -1,15 +1,28 @@
 asgiref==3.11.0
+cfgv==3.5.0
 diff-match-patch==20241021
+distlib==0.4.0
 Django==6.0.1
 django-import-export==4.4.0
 django-localflavor==5.0
 et_xmlfile==2.0.0
+filelock==3.20.3
+identify==2.6.15
+nodeenv==1.10.0
+packaging==25.0
+pip-autoremove==0.10.0
+pipdeptree==2.30.0
+platformdirs==4.5.1
+pre_commit==4.5.1
 psycopg2-binary==2.9.11
 python-decouple==3.8
 python-dotenv==1.2.1
 python-stdnum==2.2
+PyYAML==6.0.3
+setuptools==80.9.0
 sqlparse==0.5.5
 tablib==3.9.0
+virtualenv==20.36.1
 
--e ./libs/django-jazzmin
+-e git+ssh://git@github.com/matheus-santana1/django-jazzmin.git@d288a731b1594d4231211f373e3da89a0c7d0e36#egg=django_jazzmin&subdirectory=../../../libs/django-jazzmin
 #pip install --force-reinstall -e ./libs/django-jazzmin

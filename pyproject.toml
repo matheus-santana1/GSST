@@ -1,0 +1,12 @@
+[tool.bandit]
+exclude_dirs = [
+    "libs",
+    "venv",
+    ".git",
+    "__pycache__",
+]
+
+[tool.ruff]
+select = [
+    "F", # imports e variáveis não usadas
+]
