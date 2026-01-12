@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from django.conf.locale.pt_BR import formats as format_ptbr
 from pathlib import Path
+
 from decouple import config
+from django.conf.locale.pt_BR import formats as format_ptbr
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -116,6 +117,12 @@ USE_I18N = True
 USE_TZ = True
 
 format_ptbr.DATE_FORMAT = 'd/m/Y'
+
+DATE_INPUT_FORMATS = [
+    '%d/%m/%Y',
+    '%d/%m/%y',
+    '%Y-%m-%d',
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/

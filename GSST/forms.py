@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from import_export.forms import ImportForm
+
 from .models import Usuario
 
 
@@ -46,3 +48,12 @@ class UsuarioCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class CustomImportForm(ImportForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'input_format' in self.fields:
+            del self.fields['input_format']
+        if 'resource' in self.fields:
+            del self.fields['resource']

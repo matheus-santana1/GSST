@@ -1,12 +1,12 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
-from django.utils.html import format_html
 from django.urls import reverse
-from import_export.admin import ImportExportModelAdmin
+from django.utils.html import format_html
 from import_export import resources
-from django.contrib.auth.hashers import make_password
-from .forms import UsuarioCreationForm
+from import_export.admin import ImportExportModelAdmin
+from import_export.formats import base_formats
+
+from .forms import CustomImportForm, UsuarioCreationForm
 from .models import Usuario
 
 admin.site.unregister(Group)
@@ -38,10 +38,11 @@ class UsuarioResource(resources.ModelResource):
         if not instance.password:
             instance.set_unusable_password()
 
-
 # noinspection PyDeprecation,PyAttributeOutsideInit
 @admin.register(Usuario)
-class CustomUserAdmin(ImportExportModelAdmin, UserAdmin):
+class CustomUserAdmin(ImportExportModelAdmin):
+    formats = [base_formats.CSV]
+    import_form_class = CustomImportForm
     add_form = UsuarioCreationForm
     resource_class = UsuarioResource
 
