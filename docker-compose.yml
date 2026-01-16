@@ -1,7 +1,8 @@
 services:
   db:
     image: postgres:15
-    container_name: postgres_local
+    container_name: postgres
+    restart: unless-stopped
     ports:
       - "5433:5432"
     environment:
@@ -10,6 +11,39 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data_local:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gsst:
+    # build: .
+    image: matheussantana1/gsst_app:latest
+    container_name: gsst_app
+    restart: unless-stopped
+    #    ports:
+    #      - "8000:8000"
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - gsst
 
 volumes:
   postgres_data_local:
