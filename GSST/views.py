@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import logout as logout_func
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .models import Arquivo, LogAcesso
 
@@ -39,3 +41,9 @@ def arquivo_view(request, arquivo_id):
         'logs': logs
     })
     return render(request, 'arquivo_view.html', context)
+
+
+@require_POST
+def logout(request):
+    logout_func(request)
+    return redirect('/login/')

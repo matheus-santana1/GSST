@@ -1,0 +1,49 @@
+{% extends "admin/login.html" %}
+
+{% block title %}Acessar | {{ jazzmin_settings.site_title }}{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated and not user.is_staff %}
+        <div class="errornote">
+            <p class="errornote">
+                Você está autenticado como <strong>{{ user.nome_completo }}</strong>,
+                mas não tem permissão para acessar esta área. Acesse o link de um comunicado ou arquivo.
+            </p>
+            <br>
+            <form action="{% url 'admin:logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-block">
+                    <i class="fas fa-sign-out-alt"></i> Sair e entrar com outra conta
+                </button>
+            </form>
+        </div>
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+
+    <script>
+        (function () {
+            const input = document.querySelector('input[placeholder="CPF"]');
+            if (!input) return;
+            input.addEventListener('input', function () {
+                const valorOriginal = input.value;
+                if (/[a-zA-Z]/.test(valorOriginal)) {
+                    input.dataset.raw = valorOriginal;
+                    return;
+                }
+                const numeros = valorOriginal.replace(/\D/g, '').slice(0, 11);
+                input.dataset.raw = numeros;
+                let formatado = numeros;
+                if (numeros.length > 3) formatado = numeros.replace(/(\d{3})(\d)/, '$1.$2');
+                if (numeros.length > 6) formatado = formatado.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+                if (numeros.length > 9) formatado = formatado.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                input.value = formatado;
+            });
+            input.form?.addEventListener('submit', function () {
+                if (input.dataset.raw) {
+                    input.value = input.dataset.raw;
+                }
+            });
+        })();
+    </script>
+{% endblock %}

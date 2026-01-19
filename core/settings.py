@@ -32,6 +32,8 @@ ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='127.0.0.1,localhost').sp
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
 
+DEFAULT_IMPORT_PASSWORD = config('DEFAULT_IMPORT_PASSWORD', default='123456789')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -170,3 +172,6 @@ VERSION = config('SYSTEM_VERSION', default='1.0.0')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

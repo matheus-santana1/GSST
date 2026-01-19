@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -15,5 +17,7 @@ class ForcePasswordChangeMiddleware:
                     reverse("admin:logout"),
                 ]
                 if request.path not in allowed_urls:
-                    return redirect("password_change")
+                    url = reverse("password_change")
+                    params = urlencode({"next": request.get_full_path()})
+                    return redirect(f"{url}?{params}")
         return self.get_response(request)

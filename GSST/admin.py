@@ -1,4 +1,8 @@
-from django.contrib import admin
+
+from django.conf import settings
+from django.contrib import admin, messages
+from django.contrib.admin.actions import delete_selected
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.utils.html import format_html
@@ -14,6 +18,7 @@ admin.site.unregister(Group)
 
 # noinspection PyUnresolvedReferences
 class UsuarioResource(resources.ModelResource):
+    hash_senha_padrao = None
     class Meta:
         model = Usuario
         import_id_fields = ('cpf',)
@@ -32,11 +37,15 @@ class UsuarioResource(resources.ModelResource):
         if row.get('situacao') == 'ATIVO':
             row['is_active'] = True
 
+    def before_import(self, dataset, **kwargs):
+        senha_texto = getattr(settings, 'DEFAULT_IMPORT_PASSWORD')
+        self.hash_senha_padrao = make_password(senha_texto)
+
     def before_save_instance(self, instance, row, **kwargs):
         if not instance.username:
             instance.username = instance.cpf
-        if not instance.password:
-            instance.set_unusable_password()
+        if not instance.pk or not instance.password:
+            instance.password = self.hash_senha_padrao
 
 # noinspection PyDeprecation,PyAttributeOutsideInit
 @admin.register(Usuario)
@@ -95,13 +104,35 @@ class CustomUserAdmin(ImportExportModelAdmin):
     def status_admin(self, obj):
         return obj.is_superuser
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            actions['delete_selected'] = (
+                self.secure_delete_selected,
+                'delete_selected',
+                "Deletar usuários selecionados"
+            )
+        return actions
+
+    def secure_delete_selected(self, request, queryset, *args):
+        if args:
+            request = queryset
+            queryset = args[0]
+        if request.user in queryset:
+            queryset = queryset.exclude(pk=request.user.pk)
+            self.message_user(request, "Seu usuário foi removido da seleção para evitar auto-exclusão.",
+                              level=messages.WARNING)
+        if not queryset.exists():
+            self.message_user(request, "Nenhum usuário válido para deletar.", level=messages.WARNING)
+            return None
+        return delete_selected(self, request, queryset)
+
     def has_delete_permission(self, request, obj=None):
         if obj is None:
             return super().has_delete_permission(request)
         if obj == request.user:
             return False
         return super().has_delete_permission(request, obj)
-
 
 @admin.register(Arquivo)
 class ArquivoSeguroAdmin(admin.ModelAdmin):

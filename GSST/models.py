@@ -1,3 +1,4 @@
+import os
 import uuid
 from datetime import date
 
@@ -9,6 +10,7 @@ from localflavor.br.models import BRCPFField
 
 from GSST.fields import SecureFileField
 
+default_password = os.getenv("DEFAULT_PASSWORD")
 
 class Usuario(AbstractUser):
     CR_CHOICES = (
@@ -88,6 +90,8 @@ class Usuario(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.username = self.cpf
+        if not self.pk:
+            self.set_password(default_password)
         super().save(*args, **kwargs)
 
     def set_password(self, raw_password):
