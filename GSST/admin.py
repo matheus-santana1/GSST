@@ -7,7 +7,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.formats import base_formats
 
 from .forms import CustomImportForm, UsuarioCreationForm
-from .models import Usuario
+from .models import Arquivo, Usuario
 
 admin.site.unregister(Group)
 
@@ -75,7 +75,7 @@ class CustomUserAdmin(ImportExportModelAdmin):
         self.request = request
         return super().changelist_view(request, extra_context)
 
-    @admin.display(description='Ações')
+    @admin.display(description='Ações', ordering="nome_completo")
     def botao_excluir(self, obj):
         if obj == self.request.user:
             return ""
@@ -101,3 +101,23 @@ class CustomUserAdmin(ImportExportModelAdmin):
         if obj == request.user:
             return False
         return super().has_delete_permission(request, obj)
+
+
+@admin.register(Arquivo)
+class ArquivoSeguroAdmin(admin.ModelAdmin):
+    list_display = ('visualizar', 'titulo', 'criado_em', 'link')
+
+    @admin.display(description='#', ordering='titulo')
+    def visualizar(self, obj):
+        url = reverse('arquivo_view', args=[obj.id])
+        return format_html(
+            '<a href="{}" class="btn btn-outline-info btn-sm btn-" title="Visualizar Detalhes"><i class="fas fa-search"></i></a>',
+            url)
+
+    @admin.display(description='Link', ordering='titulo')
+    def link(self, obj):
+        url = reverse('acessar_arquivo', args=[obj.id])
+        return format_html(
+            '<a href="{}" target="_blank" class="btn btn-success btn-sm">Abrir Arquivo</a>',
+            url
+        )

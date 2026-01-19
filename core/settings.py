@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "GSST.middleware.ForcePasswordChangeMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -156,6 +157,16 @@ JAZZMIN_SETTINGS = {
     "site_brand": "GSST",
     "welcome_sign": "Bem-vindo ao GSST",
     "copyright": "GSST Ltd",
+    "icons": {
+        "GSST.Usuario": "fas fa-users",
+        "GSST.Arquivo": "fas fa-file",
+    }
 }
 
 AUTH_USER_MODEL = 'GSST.Usuario'
+
+VERSION = config('SYSTEM_VERSION', default='1.0.0')
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'

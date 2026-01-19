@@ -1,7 +1,13 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
+import uuid
 from datetime import date
+
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils import timezone
 from localflavor.br.models import BRCPFField
+
+from GSST.fields import SecureFileField
 
 
 class Usuario(AbstractUser):
@@ -54,6 +60,7 @@ class Usuario(AbstractUser):
     data_de_admissao = models.DateField('Data de Admissão', blank=True, null=True)
     data_de_demissao = models.DateField('Data de Demissão', blank=True, null=True)
     situacao = models.CharField('Situação', choices=SITUACAO_CHOICES, default='ATIVO', max_length=255)
+    deve_alterar_senha = models.BooleanField('Deve alterar senha?', default=True)
     USERNAME_FIELD = 'cpf'
     REQUIRED_FIELDS = ['username', 'nome_completo']
 
@@ -82,3 +89,36 @@ class Usuario(AbstractUser):
     def save(self, *args, **kwargs):
         self.username = self.cpf
         super().save(*args, **kwargs)
+
+    def set_password(self, raw_password):
+        super().set_password(raw_password)
+        if self.pk:
+            self.deve_alterar_senha = False
+
+
+class Arquivo(models.Model):
+    id = models.UUIDField('ID', primary_key=True, default=uuid.uuid4, editable=False)
+    titulo = models.CharField('Título', max_length=200)
+    arquivo = SecureFileField('Arquivo', upload_to='arquivos/')
+    criado_em = models.DateTimeField('Criado em', auto_now_add=True)
+
+    objects = models.Manager()
+
+    class Meta:
+        verbose_name = "Arquivo"
+        verbose_name_plural = "Arquivos"
+
+    def __str__(self):
+        return self.titulo
+
+
+class LogAcesso(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Usuário')
+    arquivo = models.ForeignKey(Arquivo, on_delete=models.CASCADE, verbose_name='Arquivo')
+    data_acesso = models.DateTimeField(default=timezone.now, verbose_name='Data de Acesso')
+    ip_usuario = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP do Usuário')
+
+    objects = models.Manager()
+
+    def __str__(self):
+        return f"{self.usuario} acessou {self.arquivo} em {self.data_acesso}"

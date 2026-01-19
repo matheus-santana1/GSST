@@ -3,8 +3,8 @@ services:
     image: postgres:15
     container_name: postgres
     restart: unless-stopped
-    ports:
-      - "5433:5432"
+    #    ports:
+    #      - "5433:5432"
     environment:
       - POSTGRES_DB=GSST
       - POSTGRES_USER=postgres
@@ -22,8 +22,8 @@ services:
     image: matheussantana1/gsst_app:latest
     container_name: gsst_app
     restart: unless-stopped
-    #    ports:
-    #      - "8000:8000"
+    #   ports:
+    #   - "8000:8000"
     expose:
       - "8000"
     env_file:

@@ -26,5 +26,5 @@ tablib==3.9.0
 virtualenv==20.36.1
 whitenoise==6.11.0
 
-git+https://github.com/matheus-santana1/django-jazzmin.git@d288a731b1594d4231211f373e3da89a0c7d0e36#egg=django_jazzmin
+git+https://github.com/matheus-santana1/django-jazzmin.git@f067268e6d6b81c25c92b7cc63698b528b97e517#egg=django_jazzmin
 #pip install --force-reinstall -e ./libs/django-jazzmin
