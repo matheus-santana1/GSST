@@ -22,28 +22,18 @@
     {% endif %}
 
     <script>
-        (function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const input = document.querySelector('input[placeholder="CPF"]');
-            if (!input) return;
-            input.addEventListener('input', function () {
-                const valorOriginal = input.value;
-                if (/[a-zA-Z]/.test(valorOriginal)) {
-                    input.dataset.raw = valorOriginal;
-                    return;
-                }
-                const numeros = valorOriginal.replace(/\D/g, '').slice(0, 11);
-                input.dataset.raw = numeros;
-                let formatado = numeros;
-                if (numeros.length > 3) formatado = numeros.replace(/(\d{3})(\d)/, '$1.$2');
-                if (numeros.length > 6) formatado = formatado.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-                if (numeros.length > 9) formatado = formatado.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-                input.value = formatado;
-            });
-            input.form?.addEventListener('submit', function () {
-                if (input.dataset.raw) {
-                    input.value = input.dataset.raw;
-                }
-            });
-        })();
+            if (input) {
+                input.addEventListener('input', function (e) {
+                    let valor = e.target.value;
+                    if (!valor.match(/^\d/)) {
+                        return;
+                    }
+                    let x = valor.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
+                    e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
+                });
+            }
+        })
     </script>
 {% endblock %}

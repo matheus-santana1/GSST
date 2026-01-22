@@ -1,4 +1,4 @@
-import os
+import re
 import uuid
 from datetime import date
 
@@ -10,7 +10,6 @@ from localflavor.br.models import BRCPFField
 
 from GSST.fields import SecureFileField
 
-default_password = os.getenv("DEFAULT_PASSWORD")
 
 class Usuario(AbstractUser):
     CR_CHOICES = (
@@ -89,9 +88,11 @@ class Usuario(AbstractUser):
             return f"{diferenca.days} dias"
 
     def save(self, *args, **kwargs):
+        if self.cpf:
+            self.cpf = re.sub(r'[^0-9]', '', str(self.cpf))
         self.username = self.cpf
         if not self.pk:
-            self.set_password(default_password)
+            self.set_password(getattr(settings, 'DEFAULT_IMPORT_PASSWORD'))
         super().save(*args, **kwargs)
 
     def set_password(self, raw_password):

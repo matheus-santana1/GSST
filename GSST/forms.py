@@ -43,8 +43,6 @@ class UsuarioCreationForm(UserCreationForm):
         else:
             user.is_staff = False
             user.is_superuser = False
-            user.set_unusable_password()
-
         if commit:
             user.save()
         return user
