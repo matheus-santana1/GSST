@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.utils.html import format_html
-from import_export import resources
+from import_export import fields, resources, widgets
 from import_export.admin import ImportExportModelAdmin
 from import_export.formats import base_formats
 
@@ -16,30 +16,64 @@ from .models import Arquivo, Usuario
 admin.site.unregister(Group)
 
 
+class SimNaoWidget(widgets.Widget):
+    def clean(self, value, row=None, *args, **kwargs):
+        if not value:
+            return False
+        val = str(value).strip().upper()
+        return val in ['SIM', 'S', 'YES', 'Y', '1', 'TRUE', 'ATIVO']
+
 # noinspection PyUnresolvedReferences
 class UsuarioResource(resources.ModelResource):
+    cpf = fields.Field(attribute='cpf', column_name='cpf')
+    nome_completo = fields.Field(attribute='nome_completo', column_name='nome_completo')
+
+    data_de_admissao = fields.Field(attribute='data_de_admissao', column_name='DT ADMISSÃO',
+                                    widget=widgets.DateWidget(format='%d/%m/%Y'))
+    data_de_demissao = fields.Field(attribute='data_de_demissao', column_name='DT DEMISSÃO',
+                                    widget=widgets.DateWidget(format='%d/%m/%Y'))
+    cr = fields.Field(attribute='cr', column_name='CR')
+    funcao = fields.Field(attribute='funcao', column_name='FUNÇÃO')
+    categoria = fields.Field(attribute='categoria', column_name='CATEGORIA')
+    situacao = fields.Field(attribute='situacao', column_name='SITUAÇÃO')
+    pcd = fields.Field(attribute='pcd', column_name='PCD', widget=SimNaoWidget())
+    aprendiz = fields.Field(attribute='aprendiz', column_name='APRENDIZ', widget=SimNaoWidget())
+
     hash_senha_padrao = None
     class Meta:
         model = Usuario
         import_id_fields = ('cpf',)
-        fields = ('cpf', 'nome_completo', 'cr', 'funcao', 'categoria', 'pcd', 'aprendiz', 'data_de_admissao',
-                  'data_de_demissao', 'situacao')
+        fields = ('cpf', 'nome_completo', 'data_de_admissao', 'data_de_demissao', 'cr', 'funcao', 'categoria',
+                  'situacao', 'pcd', 'aprendiz')
+        export_order = ('colaborador',)
         use_bulk = True
         batch_size = 1000
         skip_unchanged = True
         report_skipped = True
 
     def before_import_row(self, row, **kwargs):
-        if 'cpf' in row:
-            cpf_limpo = str(row['cpf']).replace('.', '').replace('-', '').strip()
-            row['cpf'] = cpf_limpo
-
+        nome_e_cpf = row.get('COLABORADOR')
+        if nome_e_cpf:
+            partes = str(nome_e_cpf).split('-', 1)
+            if len(partes) >= 1:
+                row['cpf'] = partes[0].strip()
+            if len(partes) == 2:
+                row['nome_completo'] = partes[1].strip()
+            else:
+                row['nome_completo'] = ""
         if row.get('situacao') == 'ATIVO':
             row['is_active'] = True
+        colunas_data = ['DT ADMISSÃO', 'DT DEMISSÃO']
+        for col in colunas_data:
+            valor = row.get(col)
+            if hasattr(valor, 'date'):
+                row[col] = valor.date()
 
     def before_import(self, dataset, **kwargs):
         senha_texto = getattr(settings, 'DEFAULT_IMPORT_PASSWORD')
         self.hash_senha_padrao = make_password(senha_texto)
+        dataset.headers.append('cpf')
+        dataset.headers.append('nome_completo')
 
     def before_save_instance(self, instance, row, **kwargs):
         if not instance.username:
@@ -47,10 +81,28 @@ class UsuarioResource(resources.ModelResource):
         if not instance.pk or not instance.password:
             instance.password = self.hash_senha_padrao
 
+    @staticmethod
+    def dehydrate_colaborador(instance):
+        cpf = instance.cpf
+        nome = instance.nome_completo
+        if cpf or nome:
+            return f"{cpf or ''} - {nome or ''}"
+        return ''
+
+    def get_export_fields(self, *args, **kwargs):
+        self.fields['colaborador'] = fields.Field(attribute='colaborador', column_name='COLABORADOR')
+        return super().get_export_fields(*args, **kwargs)
+
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        val = row.get('COLABORADOR')
+        if val is None or str(val).strip() == '':
+            return True
+        return super().skip_row(instance, original, row, import_validation_errors=None)
+
 # noinspection PyDeprecation,PyAttributeOutsideInit
 @admin.register(Usuario)
 class CustomUserAdmin(ImportExportModelAdmin):
-    formats = [base_formats.CSV]
+    formats = [base_formats.XLSX]
     import_form_class = CustomImportForm
     add_form = UsuarioCreationForm
     resource_class = UsuarioResource
