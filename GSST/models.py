@@ -88,11 +88,14 @@ class Usuario(AbstractUser):
             return f"{diferenca.days} dias"
 
     def save(self, *args, **kwargs):
-        if self.cpf:
-            self.cpf = re.sub(r'[^0-9]', '', str(self.cpf))
-        self.username = self.cpf
         if not self.pk:
-            self.set_password(getattr(settings, 'DEFAULT_IMPORT_PASSWORD'))
+            if self.cpf:
+                self.cpf = re.sub(r'[^0-9]', '', str(self.cpf))
+            self.username = self.cpf
+            if self.is_superuser or self.is_staff:
+                self.set_password(getattr(settings, 'DEFAULT_ADMIN_PASSWORD'))
+            else:
+                self.set_unusable_password()
         super().save(*args, **kwargs)
 
     def set_password(self, raw_password):

@@ -32,7 +32,7 @@ ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='127.0.0.1,localhost').sp
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
 
-DEFAULT_IMPORT_PASSWORD = config('DEFAULT_IMPORT_PASSWORD', default='123456789')
+DEFAULT_ADMIN_PASSWORD = config('DEFAULT_ADMIN_PASSWORD', default='123456789')
 
 # Application definition
 

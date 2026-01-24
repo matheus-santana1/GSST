@@ -1,8 +1,6 @@
 
-from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.actions import delete_selected
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.utils.html import format_html
@@ -39,7 +37,6 @@ class UsuarioResource(resources.ModelResource):
     pcd = fields.Field(attribute='pcd', column_name='PCD', widget=SimNaoWidget())
     aprendiz = fields.Field(attribute='aprendiz', column_name='APRENDIZ', widget=SimNaoWidget())
 
-    hash_senha_padrao = None
     class Meta:
         model = Usuario
         import_id_fields = ('cpf',)
@@ -70,8 +67,6 @@ class UsuarioResource(resources.ModelResource):
                 row[col] = valor.date()
 
     def before_import(self, dataset, **kwargs):
-        senha_texto = getattr(settings, 'DEFAULT_IMPORT_PASSWORD')
-        self.hash_senha_padrao = make_password(senha_texto)
         dataset.headers.append('cpf')
         dataset.headers.append('nome_completo')
 
@@ -79,7 +74,7 @@ class UsuarioResource(resources.ModelResource):
         if not instance.username:
             instance.username = instance.cpf
         if not instance.pk or not instance.password:
-            instance.password = self.hash_senha_padrao
+            instance.set_unusable_password()
 
     @staticmethod
     def dehydrate_colaborador(instance):
@@ -111,8 +106,7 @@ class CustomUserAdmin(ImportExportModelAdmin):
                     'data_de_admissao', 'data_de_demissao', 'tempo_de_casa_visual', 'situacao', 'status_admin',
                     'botao_excluir',)
     list_filter = ()
-    search_fields = ('cpf', 'first_name')
-    ordering = ('first_name',)
+    search_fields = ('cpf', 'nome_completo')
 
     fieldsets = (
         ('Identificação', {'fields': ('cpf', 'nome_completo', 'email')}),
@@ -154,7 +148,7 @@ class CustomUserAdmin(ImportExportModelAdmin):
 
     @admin.display(description='Admin', boolean=True, ordering='is_superuser')
     def status_admin(self, obj):
-        return obj.is_superuser
+        return obj.is_superuser and obj.is_staff
 
     def get_actions(self, request):
         actions = super().get_actions(request)

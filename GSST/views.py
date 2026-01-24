@@ -1,12 +1,14 @@
+import re
+
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import logout as logout_func
 from django.contrib.auth.decorators import login_required
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
-from .models import Arquivo, LogAcesso
+from .models import Arquivo, LogAcesso, Usuario
 
 
 @login_required
@@ -47,3 +49,20 @@ def arquivo_view(request, arquivo_id):
 def logout(request):
     logout_func(request)
     return redirect('/login/')
+
+
+@require_GET
+def check_cpf(request):
+    cpf_raw = request.GET.get('cpf', '')
+    cpf_limpo = re.sub(r'[^0-9]', '', cpf_raw)
+    data = {'exists': False, 'nome': ''}
+    if len(cpf_limpo) == 11:
+        try:
+            user = Usuario.objects.get(cpf=cpf_limpo)
+            if not user.has_usable_password():
+                data['exists'] = True
+                data['nome'] = user.nome_completo
+                data['funcao'] = user.funcao
+        except Usuario.DoesNotExist:
+            pass
+    return JsonResponse(data)

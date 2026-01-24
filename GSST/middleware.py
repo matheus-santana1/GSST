@@ -9,7 +9,8 @@ class ForcePasswordChangeMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated and hasattr(request.user, "deve_alterar_senha"):
+        if request.user.is_authenticated and hasattr(request.user,
+                                                     "deve_alterar_senha") and request.user.has_usable_password():
             if request.user.deve_alterar_senha:
                 allowed_urls = [
                     reverse("password_change"),

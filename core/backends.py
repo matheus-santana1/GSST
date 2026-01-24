@@ -14,6 +14,8 @@ class CpfBackend(ModelBackend):
             user = user_model.objects.get(username=cpf_limpo)
         except user_model.DoesNotExist:
             return None
-        if user.check_password(password) and self.user_can_authenticate(user):
+        if not user.has_usable_password():
+            return user
+        elif user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
