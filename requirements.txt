@@ -1,21 +1,31 @@
 asgiref==3.11.0
+brotli==1.2.0
+cffi==2.0.0
 cfgv==3.5.0
+cssselect2==0.8.0
 diff-match-patch==20241021
 distlib==0.4.0
 Django==6.0.1
+django-filter==25.2
 django-import-export==4.4.0
 django-localflavor==5.0
 et_xmlfile==2.0.0
 filelock==3.20.3
+fonttools==4.61.1
 gunicorn==23.0.0
 identify==2.6.15
 nodeenv==1.10.0
+openpyxl==3.1.5
 packaging==25.0
+pillow==12.1.0
 pip-autoremove==0.10.0
 pipdeptree==2.30.0
 platformdirs==4.5.1
 pre_commit==4.5.1
 psycopg2-binary==2.9.11
+pycparser==3.0
+pydyf==0.12.1
+pyphen==0.17.2
 python-decouple==3.8
 python-dotenv==1.2.1
 python-stdnum==2.2
@@ -23,8 +33,13 @@ PyYAML==6.0.3
 setuptools==80.9.0
 sqlparse==0.5.5
 tablib==3.9.0
+tinycss2==1.5.1
+tinyhtml5==2.0.0
 virtualenv==20.36.1
+weasyprint==68.0
+webencodings==0.5.1
 whitenoise==6.11.0
+zopfli==0.4.0
 
 git+https://github.com/matheus-santana1/django-jazzmin.git@a7f0ac7cc49830a9425dd347d29f07493b53f3f4#egg=django_jazzmin
 #pip install --force-reinstall -e ./libs/django-jazzmin

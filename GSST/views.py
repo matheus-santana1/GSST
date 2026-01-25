@@ -4,10 +4,13 @@ from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import logout as logout_func
 from django.contrib.auth.decorators import login_required
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET, require_POST
+from weasyprint import HTML
 
+from .filters import LogFilter
 from .models import Arquivo, LogAcesso, Usuario
 
 
@@ -34,15 +37,32 @@ def acessar_arquivo(request, arquivo_id):
 def arquivo_view(request, arquivo_id):
     documento = get_object_or_404(Arquivo, pk=arquivo_id)
     context = admin.site.each_context(request)
-    fields = Arquivo._meta.fields
     logs = documento.logacesso_set.all().order_by('-data_acesso')
+    filtro = LogFilter(request.GET, queryset=logs)
     context.update({
         'documento': documento,
         'title': f'Detalhes: {documento.titulo}',
-        'fields': fields,
-        'logs': logs
+        'logs': filtro.qs,
+        'filter': filtro,
     })
     return render(request, 'arquivo_view.html', context)
+
+
+@login_required
+@staff_member_required
+def exportar_pdf_logs(request, arquivo_id):
+    documento = get_object_or_404(Arquivo, pk=arquivo_id)
+    logs = documento.logacesso_set.all().order_by('-data_acesso')
+    filtro = LogFilter(request.GET, queryset=logs)
+    html_string = render_to_string('relatorios/logs_pdf.html', {
+        'documento': documento,
+        'logs': filtro.qs,
+        'user': request.user
+    })
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="logs_{documento.id}.pdf"'
+    HTML(string=html_string).write_pdf(response)
+    return response
 
 
 @require_POST
