@@ -11,10 +11,14 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Instala dependências do sistema necessárias para o adaptador do Postgres (psycopg2)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libpq-dev \
     gcc \
+    libpango-1.0-0 \
+    libharfbuzz0b \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copia o arquivo de requisitos e instala as dependências Python
