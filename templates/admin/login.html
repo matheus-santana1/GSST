@@ -1,13 +1,13 @@
 {% extends "admin/login.html" %}
 
-{% block title %}Acessar | {{ jazzmin_settings.site_title }}{% endblock %}
+{% block title %}Acessar Admin | {{ jazzmin_settings.site_title }}{% endblock %}
 
 {% block content %}
     {% if user.is_authenticated and not user.is_staff %}
         <div class="errornote">
             <p class="errornote">
-                Você está autenticado como <strong>{{ user.nome_completo }}</strong>,
-                mas não tem permissão para acessar esta área. Acesse o link de um comunicado ou arquivo.
+                Você está autenticado como <strong>{{ user.nome_completo|default:user.username }}</strong>,
+                mas não tem permissão para acessar o painel administrativo.
             </p>
             <br>
             <form action="{% url 'admin:logout' %}" method="post">
@@ -19,85 +19,5 @@
         </div>
     {% else %}
         {{ block.super }}
-        <div id="user-greeting" class="flex-column">
-            <span id="user-name-span" class="mb-4"></span>
-            <button id="acessar" type="submit" class="btn btn-success btn-block" style="display: none">
-                Acessar
-            </button>
-        </div>
     {% endif %}
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const inputCpf = document.querySelector('input[name="username"]'); // O Jazzmin geralmente usa name="username"
-            const inputPassword = document.querySelector('input[name="password"]');
-            const greetingDiv = document.getElementById('user-greeting');
-            const nameSpan = document.getElementById('user-name-span');
-            const button = document.getElementById('acessar');
-            const originalButton = document.querySelector('button[type="submit"]');
-            const callout = document.querySelector('.callout');
-
-            function getPasswordContainer() {
-                if (!inputPassword) return null;
-                return inputPassword.closest('.form-group') || inputPassword.closest('.form-row') || inputPassword.parentElement;
-            }
-
-            function debounce(func, wait) {
-                let timeout;
-                return function (...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), wait);
-                };
-            }
-
-            const checkCpf = debounce(function (valor) {
-                let numbers = valor.replace(/\D/g, '');
-                if (numbers.length === 11) {
-                    fetch(`{% url 'check_cpf' %}?cpf=${numbers}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const pwdContainer = getPasswordContainer();
-                            if (data.exists) {
-                                if (pwdContainer) pwdContainer.style.display = 'none';
-                                button.style.display = 'block';
-                                originalButton.style.display = 'none';
-                                nameSpan.innerHTML = `Você está autenticado como <strong>${data.nome}</strong>, com a função de <strong>${data.funcao}</strong>.`;
-                                greetingDiv.style.display = 'flex';
-                                callout.style.display = 'none';
-                            } else {
-                                if (pwdContainer) pwdContainer.style.display = 'flex';
-                                button.style.display = 'none';
-                                originalButton.style.display = 'block';
-                                greetingDiv.style.display = 'none';
-                            }
-                        })
-                        .catch(err => console.error('Erro ao verificar CPF:', err));
-                } else {
-                    const pwdContainer = getPasswordContainer();
-                    if (pwdContainer) pwdContainer.style.display = 'flex';
-                    button.style.display = 'none';
-                    originalButton.style.display = 'block';
-                    greetingDiv.style.display = 'none';
-                }
-            }, 500);
-
-            if (inputCpf) {
-                inputCpf.addEventListener('input', function (e) {
-                    let valor = e.target.value;
-                    if (valor !== "" && !valor.match(/^\d/)) return;
-                    let x = valor.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
-                    e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
-                    {% if not user.is_authenticated %}
-                        checkCpf(e.target.value);
-                    {% endif %}
-                });
-            }
-
-            button.addEventListener('click', function () {
-                const form = document.querySelector('form');
-                inputPassword.value = 'empty';
-                form.submit();
-            })
-        })
-    </script>
 {% endblock %}

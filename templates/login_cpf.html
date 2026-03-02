@@ -1,0 +1,186 @@
+{% extends "admin/login.html" %}
+
+{% block title %}Acesso via CPF | {{ jazzmin_settings.site_title }}{% endblock %}
+
+{% block content %}
+    <style>
+        .cpf-inline {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .cpf-muted {
+            opacity: .85;
+            font-size: 0.9em;
+        }
+
+        #cpf-status, #cpf-spinner, #cpf-actions {
+            display: none;
+        }
+
+        #cpf-status .msg {
+            margin: 0;
+            font-size: 0.95em;
+        }
+    </style>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <i class="icon fas fa-exclamation-triangle"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="callout callout-info" style="margin-bottom: 0;">
+        <div class="cpf-inline">
+            <h5 class="m-0"><i class="fas fa-id-card"></i> Acesso Rápido</h5>
+        </div>
+        <p class="cpf-muted mb-3">Digite seu CPF para acessar os comunicados.</p>
+
+        <form id="cpf-form" method="POST" action="{% url 'login_cpf_view' %}">
+            {% csrf_token %}
+
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+
+            <div class="input-group mb-3">
+                <input type="text" id="cpf-input" class="form-control" placeholder="000.000.000-00"
+                       autocomplete="username" autofocus>
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-user"></span>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="cpf" id="cpf-hidden">
+
+            <div id="cpf-spinner" class="cpf-muted mt-2">
+                <i class="fas fa-spinner fa-spin"></i> Verificando CPF...
+            </div>
+
+            <div id="cpf-status" class="mt-2">
+                <p class="msg"></p>
+            </div>
+
+            <div id="cpf-actions" class="mt-3">
+                <button id="cpf-continue" type="submit" class="btn btn-success btn-block mb-2">
+                    <i class="fas fa-sign-in-alt"></i> Continuar
+                </button>
+                <button id="cpf-clear" type="button" class="btn btn-default btn-block">
+                    <i class="fas fa-eraser"></i> Limpar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        (function ($) {
+            $(function () {
+                const $input = $('#cpf-input');
+                const $hidden = $('#cpf-hidden');
+                const $form = $('#cpf-form');
+                const $spinner = $('#cpf-spinner');
+                const $status = $('#cpf-status');
+                const $statusMsg = $('#cpf-status .msg');
+                const $actions = $('#cpf-actions');
+                const $btnClear = $('#cpf-clear');
+
+                let lastCheckedCpf = null;
+                let cpfIsValid = false;
+
+                function setStatus(html, kind) {
+                    $status.show();
+                    // O AdminLTE possui as classes text-success, text-danger, text-info nativamente
+                    $statusMsg.removeClass('text-success text-danger text-info text-warning').addClass(`text-${kind}`).html(html);
+                }
+
+                function resetFlow() {
+                    cpfIsValid = false;
+                    lastCheckedCpf = null;
+                    $hidden.val('');
+                    $spinner.hide();
+                    $status.hide();
+                    $actions.hide();
+                }
+
+                function formatCpf(value) {
+                    const digits = (value || '').replace(/\D/g, '').slice(0, 11);
+                    let out = digits.slice(0, 3);
+                    if (digits.length > 3) out += '.' + digits.slice(3, 6);
+                    if (digits.length > 6) out += '.' + digits.slice(6, 9);
+                    if (digits.length > 9) out += '-' + digits.slice(9, 11);
+                    return {formatted: out, digits};
+                }
+
+                function debounce(fn, wait) {
+                    let t = null;
+                    return function (...args) {
+                        clearTimeout(t);
+                        t = setTimeout(() => fn.apply(this, args), wait);
+                    };
+                }
+
+                const checkCpf = debounce(function () {
+                    const raw = ($input.val() || '').trim();
+                    const {formatted, digits} = formatCpf(raw);
+
+                    if (formatted !== raw) $input.val(formatted);
+
+                    if (digits.length !== 11) {
+                        resetFlow();
+                        if (digits.length > 0) setStatus('Digite os <strong>11 números</strong> do CPF.', 'info');
+                        return;
+                    }
+
+                    if (lastCheckedCpf === digits) return;
+                    lastCheckedCpf = digits;
+
+                    $spinner.show();
+                    $status.hide();
+                    $actions.hide();
+
+                    fetch(`{% url 'check_cpf' %}?cpf=${digits}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            $spinner.hide();
+                            if (data && data.exists) {
+                                cpfIsValid = true;
+                                $hidden.val(digits);
+                                setStatus(`Olá, <strong>${data.nome}</strong>!<br><span class="cpf-muted">Função: <strong>${data.funcao}</strong></span>`, 'success');
+                                $actions.show();
+                            } else {
+                                cpfIsValid = false;
+                                setStatus('CPF não encontrado. Verifique e tente novamente.', 'danger');
+                            }
+                        })
+                        .catch(err => {
+                            $spinner.hide();
+                            cpfIsValid = false;
+                            setStatus('Não foi possível verificar agora. Tente novamente.', 'danger');
+                        });
+                }, 400);
+
+                $input.on('input', checkCpf);
+
+                $btnClear.on('click', function () {
+                    $input.val('');
+                    resetFlow();
+                    $input.focus();
+                });
+
+                $form.on('submit', function (e) {
+                    if (!cpfIsValid || !$hidden.val()) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        })(window.django && django.jQuery ? django.jQuery : window.jQuery);
+    </script>
+{% endblock %}

@@ -7,7 +7,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import RedirectView
 
 from GSST.views import (acessar_arquivo, arquivo_view, check_cpf,
-                        exportar_pdf_logs, logout)
+                        exportar_pdf_logs, login_cpf_view, logout)
 
 
 class PasswordChangeViewCustom(auth_views.PasswordChangeView):
@@ -27,10 +27,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('arquivo/<uuid:arquivo_id>/', acessar_arquivo, name='acessar_arquivo'),
     path('arquivo/view/<uuid:arquivo_id>/', arquivo_view, name='arquivo_view'),
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('arquivo/<uuid:arquivo_id>/pdf/', exportar_pdf_logs, name='exportar_pdf_logs'),
+    path('login/', login_cpf_view, name='login_cpf_view'),
     path("", RedirectView.as_view(url="/admin/", permanent=True)),
     path("password-change/", PasswordChangeViewCustom.as_view(), name="password_change", ),
     path("password-change/done/", auth_views.PasswordChangeDoneView.as_view(), name="password_change_done", ),
     path('api/check-cpf/', check_cpf, name='check_cpf'),
-    path('arquivo/<uuid:arquivo_id>/pdf/', exportar_pdf_logs, name='exportar_pdf_logs'),
 ]

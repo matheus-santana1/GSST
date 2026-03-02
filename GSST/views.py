@@ -1,12 +1,14 @@
 import re
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import login
 from django.contrib.auth import logout as logout_func
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 from weasyprint import HTML
 
@@ -69,7 +71,7 @@ def exportar_pdf_logs(request, arquivo_id):
 @require_POST
 def logout(request):
     logout_func(request)
-    return redirect('/login/')
+    return redirect('login_cpf_view')
 
 
 @require_GET
@@ -87,3 +89,27 @@ def check_cpf(request):
         except Usuario.DoesNotExist:
             pass
     return JsonResponse(data)
+
+
+@never_cache
+def login_cpf_view(request):
+    next_url = request.GET.get('next') or request.POST.get('next')
+    if request.user.is_authenticated:
+        return redirect(next_url) if next_url else redirect('/')
+
+    if request.method == 'POST':
+        cpf_raw = request.POST.get('cpf', '')
+        cpf_limpo = re.sub(r'[^0-9]', '', cpf_raw)
+        if len(cpf_limpo) == 11:
+            try:
+                user = Usuario.objects.get(cpf=cpf_limpo)
+                if not user.has_usable_password():
+                    login(request, user)
+                    if next_url:
+                        return redirect(next_url)
+                    return redirect('/')
+            except Usuario.DoesNotExist:
+                messages.error(request, "Falha na autenticação. CPF não encontrado.")
+        else:
+            messages.error(request, "CPF inválido. Certifique-se de enviar os 11 números.")
+    return render(request, 'login_cpf.html')

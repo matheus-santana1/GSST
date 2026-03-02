@@ -63,7 +63,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'core.backends.CpfBackend',
+    # 'core.backends.CpfBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -181,3 +181,10 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# 1. Expira ao fechar o navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# 2. Mas mesmo que ele não feche o navegador, expira por inatividade após 2 horas (7200 segundos)
+SESSION_COOKIE_AGE = 7200
+SESSION_SAVE_EVERY_REQUEST = True
