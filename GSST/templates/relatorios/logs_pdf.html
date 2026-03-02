@@ -65,7 +65,7 @@
         <th>Usuário</th>
         <th>Data/Hora</th>
         <th>CR</th>
-        <th>IP</th>
+        <th>Identificador</th>
     </tr>
     </thead>
     <tbody>
@@ -74,7 +74,7 @@
             <td>{{ log.usuario }}</td>
             <td>{{ log.data_acesso|date:"d/m/Y H:i:s" }}</td>
             <td>{{ log.usuario.cr }}</td>
-            <td>{{ log.ip_usuario }}</td>
+            <td>{{ log.ip_usuario|slice:":9" }}</td>
         </tr>
     {% empty %}
         <tr>

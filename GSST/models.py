@@ -10,6 +10,8 @@ from localflavor.br.models import BRCPFField
 
 from GSST.fields import SecureFileField
 
+from .cripto import decrypt_ip, encrypt_ip
+
 
 class Usuario(AbstractUser):
     CR_CHOICES = (
@@ -124,9 +126,15 @@ class LogAcesso(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Usuário')
     arquivo = models.ForeignKey(Arquivo, on_delete=models.CASCADE, verbose_name='Arquivo')
     data_acesso = models.DateTimeField(default=timezone.now, verbose_name='Data de Acesso')
-    ip_usuario = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP do Usuário')
+    ip_usuario = models.TextField(null=True, blank=True, verbose_name='IP do Usuário')
 
     objects = models.Manager()
 
     def __str__(self):
         return f"{self.usuario} acessou {self.arquivo} em {self.data_acesso}"
+
+    def set_ip(self, ip: str | None) -> None:
+        self.ip_usuario_key = encrypt_ip(ip) if ip else None
+
+    def get_ip(self) -> str | None:
+        return decrypt_ip(self.ip_usuario_key) if self.ip_usuario_key else None

@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET, require_POST
 from weasyprint import HTML
 
+from .cripto import encrypt_ip
 from .filters import LogFilter
 from .models import Arquivo, LogAcesso, Usuario
 
@@ -27,7 +28,7 @@ def acessar_arquivo(request, arquivo_id):
         LogAcesso.objects.get_or_create(
             usuario=usuario,
             arquivo=documento,
-            defaults={"ip_usuario": ip}
+            defaults={"ip_usuario": encrypt_ip(ip) if ip else None}
         )
     return FileResponse(documento.arquivo, as_attachment=False)
 
