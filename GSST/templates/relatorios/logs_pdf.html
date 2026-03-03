@@ -74,7 +74,7 @@
             <td>{{ log.usuario }}</td>
             <td>{{ log.data_acesso|date:"d/m/Y H:i:s" }}</td>
             <td>{{ log.usuario.cr }}</td>
-            <td>{{ log.ip_usuario|slice:":9" }}</td>
+            <td>{{ log.ip_usuario|slice:"-11:" }}</td>
         </tr>
     {% empty %}
         <tr>

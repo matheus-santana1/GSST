@@ -134,7 +134,7 @@ class LogAcesso(models.Model):
         return f"{self.usuario} acessou {self.arquivo} em {self.data_acesso}"
 
     def set_ip(self, ip: str | None) -> None:
-        self.ip_usuario_key = encrypt_ip(ip) if ip else None
+        self.ip_usuario = encrypt_ip(ip) if ip else None
 
     def get_ip(self) -> str | None:
-        return decrypt_ip(self.ip_usuario_key) if self.ip_usuario_key else None
+        return decrypt_ip(self.ip_usuario) if self.ip_usuario else None
