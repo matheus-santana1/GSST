@@ -42,5 +42,5 @@ whitenoise==6.11.0
 zopfli==0.4.0
 cryptography==46.0.5
 
-git+https://github.com/matheus-santana1/django-jazzmin.git@a7f0ac7cc49830a9425dd347d29f07493b53f3f4#egg=django_jazzmin
+git+https://github.com/matheus-santana1/django-jazzmin.git@be877446c6a2bceba538f31936b3dc6ca5fbca17#egg=django_jazzmin
 #pip install --force-reinstall -e ./libs/django-jazzmin
